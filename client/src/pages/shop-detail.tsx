@@ -91,13 +91,29 @@ export default function ShopDetail() {
         </div>
 
         {/* About */}
-        <div className="space-y-3">
-          <h2 className="text-xl font-serif font-bold text-primary">The Vibe</h2>
-          <p className="text-muted-foreground leading-relaxed">
-            {shop.description}
-          </p>
+        <div className="space-y-4">
+          <div className="flex flex-wrap gap-2">
+            {shop.tags.filter(t => t.includes("House") || t.includes("Sweet")).map(tag => (
+              <Badge key={tag} className="px-3 py-1 text-sm bg-amber-100 text-amber-900 hover:bg-amber-200 border-none">
+                <Star size={12} className="mr-1 inline" /> {tag}
+              </Badge>
+            ))}
+             {shop.tags.filter(t => t.includes("Vibe")).map(tag => (
+              <Badge key={tag} className="px-3 py-1 text-sm bg-purple-100 text-purple-900 hover:bg-purple-200 border-none">
+                 ✨ {tag.replace("Vibe: ", "")}
+              </Badge>
+            ))}
+          </div>
+
+          <div>
+            <h2 className="text-xl font-serif font-bold text-primary mb-2">The Experience</h2>
+            <p className="text-muted-foreground leading-relaxed">
+              {shop.description}
+            </p>
+          </div>
+          
           <div className="flex flex-wrap gap-2 pt-2">
-            {shop.tags.map(tag => (
+            {shop.tags.filter(t => !t.includes("House") && !t.includes("Sweet") && !t.includes("Vibe")).map(tag => (
               <Badge key={tag} variant="secondary" className="px-3 py-1 text-sm bg-secondary/50 hover:bg-secondary">
                 {tag}
               </Badge>

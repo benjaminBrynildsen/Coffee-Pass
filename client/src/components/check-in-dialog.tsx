@@ -44,12 +44,23 @@ export function CheckInDialog({ shopName, trigger }: { shopName: string, trigger
                   </div>
                 </div>
 
+                <div className="space-y-3">
+                  <label className="text-sm font-medium">Vibe Check</label>
+                  <div className="flex flex-wrap gap-2">
+                    {["Productive", "Social", "Date Night", "Quiet", "Loud", "Cozy"].map(vibe => (
+                      <button key={vibe} className="px-3 py-1.5 rounded-full border border-border text-xs hover:border-accent hover:text-accent transition-colors focus:bg-accent focus:text-white">
+                        {vibe}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">How's the vibe?</label>
+                  <label className="text-sm font-medium">Sweetness Level</label>
                   <Slider defaultValue={[50]} max={100} step={1} className="py-4" />
                   <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>Quiet</span>
-                    <span>Lively</span>
+                    <span>Black Coffee</span>
+                    <span>Sugar Bomb</span>
                   </div>
                 </div>
 
