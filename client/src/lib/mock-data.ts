@@ -1,5 +1,20 @@
-
 import coldBrewImage from "@assets/generated_images/cold_brew_coffee_flight_on_a_wooden_board.png";
+import { ProviderType, RewardSourceType } from "@/integrations/types";
+
+// --- Types ---
+
+export interface User {
+  id: string;
+  name: string;
+  username: string;
+  avatar: string;
+  bio?: string;
+  stats: {
+    collected: number;
+    trails: number;
+    streak: number;
+  };
+}
 
 export interface Shop {
   id: string;
@@ -13,16 +28,10 @@ export interface Shop {
   description: string;
   isOpen: boolean;
   distance: string;
-}
-
-export interface Trail {
-  id: string;
-  title: string;
-  description: string;
-  shops: string[]; // shop ids
-  completed: number;
-  total: number;
-  image: string;
+  
+  // New Integration Fields
+  externalProvider?: ProviderType;
+  externalShopId?: string;
 }
 
 export interface Reward {
@@ -36,66 +45,96 @@ export interface Reward {
   status: 'LOCKED' | 'UNLOCKED' | 'REVEAL_STARTED' | 'REDEEMED';
   shopId?: string; // For partner rewards
   expiryDate?: string;
-  code?: string; // Mock code for partner rewards
+  
+  // New Reward Source Fields
+  rewardSource: RewardSourceType;
+  code?: string; // For POS_CODE
+  externalProvider?: ProviderType;
 }
 
-export const MOCK_REWARDS: Reward[] = [
-  // Platform Rewards
+export interface Trail {
+  id: string;
+  title: string;
+  description: string;
+  shops: string[]; // shop ids
+  completed: number;
+  total: number;
+  image: string;
+}
+
+export interface FeedItem {
+  id: string;
+  userId: string;
+  type: 'CHECKIN' | 'TRAIL_COMPLETE' | 'REWARD_UNLOCKED';
+  title: string;
+  subtitle: string;
+  image?: string;
+  timestamp: string;
+}
+
+// --- Mock Data ---
+
+export const CURRENT_USER: User = {
+  id: "u1",
+  name: "Dustin Henderson",
+  username: "@dustin",
+  avatar: "https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=crop&q=80&w=200",
+  bio: "Science & Coffee Nerd • Hawkins",
+  stats: {
+    collected: 24,
+    trails: 5,
+    streak: 12
+  }
+};
+
+export const MOCK_FRIENDS: User[] = [
   {
-    id: "r1",
-    type: "PLATFORM",
-    title: "New Explorer",
-    description: "Visit 5 different coffee shops.",
-    criteria: "5 Check-ins",
-    progress: 3,
-    total: 5,
-    status: "LOCKED"
+    id: "u2",
+    name: "Steve Harrington",
+    username: "@steve_hair",
+    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200",
+    stats: { collected: 18, trails: 2, streak: 3 }
   },
   {
-    id: "r2",
-    type: "PLATFORM",
-    title: "Free Month of Coffee Pass",
-    description: "Visit 10 different coffee shops to unlock a free month.",
-    criteria: "10 Check-ins",
-    progress: 3,
-    total: 10,
-    status: "LOCKED"
+    id: "u3",
+    name: "Robin Buckley",
+    username: "@robin_b",
+    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=200",
+    stats: { collected: 32, trails: 6, streak: 8 }
   },
   {
-    id: "r3",
-    type: "PLATFORM",
-    title: "Caffeine Streak",
-    description: "Visit 3 shops in 7 days.",
-    criteria: "Streak",
-    progress: 1,
-    total: 3,
-    status: "LOCKED"
-  },
-  // Partner Rewards
+    id: "u4",
+    name: "Lucas Sinclair",
+    username: "@lucas_s",
+    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200",
+    stats: { collected: 15, trails: 1, streak: 0 }
+  }
+];
+
+export const MOCK_FEED: FeedItem[] = [
   {
-    id: "r4",
-    type: "PARTNER",
-    title: "Free Drip Coffee",
-    description: "Check in 5 times at Sump Coffee.",
-    criteria: "5 Sump Visits",
-    progress: 4,
-    total: 5,
-    status: "LOCKED",
-    shopId: "1",
-    code: "SUMPFREE"
+    id: "f1",
+    userId: "u2",
+    type: "CHECKIN",
+    title: "Steve checked in at Sump Coffee",
+    subtitle: "Drinking a Pour Over",
+    timestamp: "20m ago"
   },
   {
-    id: "r5",
-    type: "PARTNER",
-    title: "BOGO Pastry",
-    description: "Complete the Cold Brew Circuit to unlock.",
-    criteria: "Trail Completion",
-    progress: 1,
-    total: 1,
-    status: "UNLOCKED",
-    shopId: "2",
-    expiryDate: "Expires in 6 days",
-    code: "COFFEEPASSFREE"
+    id: "f2",
+    userId: "u3",
+    type: "REWARD_UNLOCKED",
+    title: "Robin unlocked 'Caffeine Streak'",
+    subtitle: "3 shops in 7 days!",
+    timestamp: "2h ago"
+  },
+  {
+    id: "f3",
+    userId: "u3",
+    type: "CHECKIN",
+    title: "Robin checked in at Comet Coffee",
+    subtitle: "Drinking a Latte",
+    timestamp: "2h ago"
   }
 ];
 
@@ -111,7 +150,8 @@ export const MOCK_SHOPS: Shop[] = [
     image: "https://images.unsplash.com/photo-1497935586351-b67a49e012bf?auto=format&fit=crop&q=80&w=1000",
     description: "Serious coffee for serious people. Known for their meticulous pour-overs and single-origin beans.",
     isOpen: true,
-    distance: "0.8 mi"
+    distance: "0.8 mi",
+    externalProvider: "SQUARE"
   },
   {
     id: "2",
@@ -124,7 +164,8 @@ export const MOCK_SHOPS: Shop[] = [
     image: "https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&q=80&w=1000",
     description: "Micro-roastery with house-made pastries and a cozy atmosphere perfect for morning rituals.",
     isOpen: true,
-    distance: "2.1 mi"
+    distance: "2.1 mi",
+    externalProvider: "TOAST"
   },
   {
     id: "3",
@@ -194,5 +235,72 @@ export const MOCK_TRAILS: Trail[] = [
     completed: 2,
     total: 2,
     image: "https://images.unsplash.com/photo-1462917882517-e15001d6968f?auto=format&fit=crop&q=80&w=1000"
+  }
+];
+
+export const MOCK_REWARDS: Reward[] = [
+  // Platform Rewards
+  {
+    id: "r1",
+    type: "PLATFORM",
+    title: "New Explorer",
+    description: "Visit 5 different coffee shops.",
+    criteria: "5 Check-ins",
+    progress: 3,
+    total: 5,
+    status: "LOCKED",
+    rewardSource: "MANUAL"
+  },
+  {
+    id: "r2",
+    type: "PLATFORM",
+    title: "Free Month of Coffee Pass",
+    description: "Visit 10 different coffee shops to unlock a free month.",
+    criteria: "10 Check-ins",
+    progress: 3,
+    total: 10,
+    status: "LOCKED",
+    rewardSource: "MANUAL"
+  },
+  {
+    id: "r3",
+    type: "PLATFORM",
+    title: "Caffeine Streak",
+    description: "Visit 3 shops in 7 days.",
+    criteria: "Streak",
+    progress: 1,
+    total: 3,
+    status: "LOCKED",
+    rewardSource: "MANUAL"
+  },
+  // Partner Rewards
+  {
+    id: "r4",
+    type: "PARTNER",
+    title: "Free Drip Coffee",
+    description: "Check in 5 times at Sump Coffee.",
+    criteria: "5 Sump Visits",
+    progress: 4,
+    total: 5,
+    status: "LOCKED",
+    shopId: "1",
+    code: "SUMPFREE",
+    rewardSource: "POS_CODE",
+    externalProvider: "SQUARE"
+  },
+  {
+    id: "r5",
+    type: "PARTNER",
+    title: "BOGO Pastry",
+    description: "Complete the Cold Brew Circuit to unlock.",
+    criteria: "Trail Completion",
+    progress: 1,
+    total: 1,
+    status: "UNLOCKED",
+    shopId: "2",
+    expiryDate: "Expires in 6 days",
+    code: "COFFEEPASSFREE",
+    rewardSource: "POS_CODE",
+    externalProvider: "TOAST"
   }
 ];

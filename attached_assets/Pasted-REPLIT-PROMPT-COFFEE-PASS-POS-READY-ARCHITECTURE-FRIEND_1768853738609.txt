@@ -1,0 +1,226 @@
+REPLIT PROMPT — COFFEE PASS: POS-READY ARCHITECTURE + FRIENDS & REWARDS SCREEN LAYOUTS
+
+Update the existing app (now named **Coffee Pass**) with:
+A) POS-integration readiness (no actual integrations yet) so we can connect to Square/Toast/Clover/Lightspeed later without refactoring.
+B) Implement the Friends + Rewards screen layouts and required supporting data.
+
+========================================================
+A) POS-READY ARCHITECTURE (PREP ONLY — NO LIVE POS CALLS)
+========================================================
+
+GOAL:
+Make rewards + check-ins event-driven and extensible with “external providers” so future POS integrations are plug-and-play.
+
+1) ADD PROVIDER ABSTRACTION LAYER
+Create a folder `src/integrations/` with:
+- `types.ts` defining:
+  - ProviderType = 'NONE' | 'SQUARE' | 'TOAST' | 'CLOVER' | 'LIGHTSPEED'
+  - RewardSourceType = 'MANUAL' | 'POS_CODE' | 'POS_AUTOMATED'
+  - EventType = 'CHECKIN' | 'TRAIL_COMPLETE' | 'MILESTONE' | 'POS_TRANSACTION' | 'POS_REDEMPTION'
+- `providerRegistry.ts` that can register providers (stubs now)
+- `providers/square.ts`, `providers/toast.ts`, etc. as stub modules exporting connect/disconnect placeholders
+
+2) ADD EXTERNAL IDS + CONFIG FIELDS IN DATABASE
+Supabase migrations (SQL) must add:
+
+TABLE: shops
+- external_provider ProviderType nullable
+- external_shop_id text nullable       -- POS location/store id
+- external_meta jsonb nullable         -- any future provider config
+
+TABLE: rewards
+- reward_source RewardSourceType not null default 'MANUAL'
+- external_provider ProviderType nullable
+- external_reward_id text nullable     -- POS discount/reward id later
+- external_meta jsonb nullable         -- e.g. discount rules, item filters
+- code_text text nullable              -- for POS_CODE rewards (static promo code)
+- expires_seconds int nullable         -- for one-time reveal timers
+
+TABLE: user_rewards
+- status enum: LOCKED | UNLOCKED | REVEAL_STARTED | REDEEMED
+- external_redemption_id text nullable -- id returned by POS later
+- revealed_at timestamptz nullable
+- redeemed_at timestamptz nullable
+
+TABLE: checkins
+- external_provider ProviderType nullable
+- external_txn_id text nullable        -- POS transaction id later
+- verified_source enum: 'USER'|'POS' not null default 'USER'
+
+NEW TABLE: integration_connections
+- id uuid pk
+- user_id uuid nullable (for consumer connections if needed later; ok nullable)
+- shop_id uuid nullable (for shop connections later; ok nullable)
+- provider ProviderType not null
+- status enum: DISCONNECTED | CONNECTED | ERROR
+- access_token text nullable (encrypted later; for now store nullable, do not use)
+- refresh_token text nullable
+- token_expires_at timestamptz nullable
+- external_account_id text nullable
+- created_at, updated_at
+
+NEW TABLE: events (EVENT BUS)
+- id uuid pk
+- type EventType not null
+- actor_user_id uuid nullable
+- shop_id uuid nullable
+- payload jsonb not null
+- created_at timestamptz not null default now()
+
+3) EVENT-DRIVEN REWARD ENGINE (WORKS NOW, EXTENDS LATER)
+Implement `src/engine/rewardEngine.ts`:
+- A function `emitEvent(event: EventType, payload: any)` inserts into `events`.
+- A worker-like function `processLatestEvents()` (invoked on app actions for now) that:
+  - On CHECKIN: updates aggregates + unlocks rewards
+  - On TRAIL_COMPLETE/MILESTONE: unlocks rewards
+  - (Future) On POS_TRANSACTION: would create verified checkins
+  - (Future) On POS_REDEMPTION: would mark rewards redeemed
+
+For now, call `emitEvent('CHECKIN', ...)` whenever a check-in is created, then immediately call `processLatestEvents()`.
+
+4) REWARD SOURCE MODES (DESIGN NOW)
+Rewards must support these modes:
+- MANUAL: unlocked by check-ins; redemption via honor system (no code)
+- POS_CODE: unlocked by check-ins; redemption via one-time reveal `code_text`
+- POS_AUTOMATED: placeholder only; show “Auto-redeem enabled” badge but keep inactive unless provider connected
+
+5) ONE-TIME CODE REVEAL (FROM PREVIOUS SPEC)
+Implement the “Open code once” interstitial + reveal screen:
+- Interstitial: “Once you open the code, you can’t open it again. Make sure the barista is ready.”
+- Reveal screen: big code + timer + Done
+- Locking behavior: once status becomes REVEAL_STARTED, user cannot re-open code; after Done mark REDEEMED.
+
+========================================================
+B) FRIENDS + REWARDS SCREEN LAYOUTS (IMPLEMENT)
+========================================================
+
+NAV STRUCTURE:
+Add 5-tab bottom nav:
+- Map
+- Trails
+- Feed
+- Friends
+- Rewards
+
+--------------------------------------------------------
+FRIENDS TAB — SCREEN LAYOUT
+--------------------------------------------------------
+
+FriendsScreen layout (top to bottom):
+1) Header: "Friends"
+   - Right icon: Settings (privacy)
+2) Search bar: "Search people"
+3) Segmented control:
+   - Following | Followers | Suggested
+4) Following list:
+   - Row: avatar + name + username
+   - Small stat line: "Collected 27 cafes"
+   - CTA: "View"
+   - Secondary: "Following" toggle button
+5) Suggested list (can be stubbed):
+   - "Suggested for you" header
+   - Users list with Follow button
+
+UserProfileScreen layout:
+- Hero: avatar, display_name, username
+- Stats row (3):
+  - Collected
+  - Trails
+  - Streak (optional)
+- Buttons:
+  - Follow/Unfollow
+  - Share Profile
+- Sections:
+  1) “Collected Cafes” (map mini-preview + “View all”)
+  2) “Recent Check-ins” (last 10)
+  3) “Go-to orders” (top 3 drink_types overall)
+
+FRIENDS MAP INTEGRATION:
+On Map screen add a toggle (chips) near top:
+- Me | Friends | Everyone
+Friends mode:
+- Show only shops with 1+ check-in by followed users in bounds.
+- Pins show small avatar stack up to 3.
+
+SHOP DETAIL SOCIAL STRIP:
+On ShopDetail, under title, if friends visited:
+- Text: “Jake, Lexi, and Peter have been here”
+- If >3: “Jake, Lexi, and 4 others have been here”
+Below, show go-to orders (only if friend has 2+ checkins at this shop):
+- “Jake usually gets: Oat milk latte”
+
+Add “See all” to open FriendsAtShopScreen:
+- list of friends + visit count + go-to order
+
+PRIVACY:
+Add Profile visibility setting:
+- Public | Followers | Private
+Respect it in: feed, friends-at-shop, profile pages.
+
+--------------------------------------------------------
+REWARDS TAB — SCREEN LAYOUT
+--------------------------------------------------------
+
+RewardsScreen layout:
+1) Header: "Rewards"
+2) Top progress card (Belly-style):
+   - “You’re 2 cafes away from your next reward ☕️”
+   - Progress bar (based on next closest reward criteria)
+   - Small text: “Check in at any cafe to move progress”
+3) Segmented control:
+   - Earned | In Progress | Redeemed
+4) Reward cards:
+   Each card shows:
+   - Title (e.g., “Free month of Coffee Pass”)
+   - How to earn (e.g., “10 cafes collected”)
+   - Status badge (Unlocked / In progress / Redeemed)
+   - CTA:
+     - If In progress: “View progress”
+     - If Earned and reward_source=POS_CODE: “Use code”
+     - If Earned and reward_source=MANUAL: “Show to barista” (simple proof screen)
+5) Reward Detail screen:
+   - Title + description
+   - Progress breakdown
+   - If POS_CODE: button “Use code” opens the one-time reveal flow
+   - If MANUAL: show a simple proof card with QR placeholder (optional)
+
+REWARD INDICATOR ON SHOP DETAIL:
+If the current shop has an attached active reward (shop_rewards):
+- Show small pill: “Rewards available here”
+Tap opens that reward’s detail.
+
+--------------------------------------------------------
+DATA + QUERIES REQUIRED
+--------------------------------------------------------
+
+Follows table:
+- follows(follower_id, following_id, created_at) unique pair
+
+Required RPCs or optimized queries:
+- getFriendsWhoVisitedShop(shop_id, viewer_user_id)
+  returns up to N friends with visit_count + go_to_order (>=2)
+- getFriendsPinsInBounds(bounds, viewer_user_id)
+  returns shops with friend_count + avatar stack
+- getFeed(viewer_user_id)
+  returns activity items from followed users (CHECKIN, TRAIL_COMPLETE, REWARD_UNLOCKED)
+- getNextRewardProgress(user_id)
+  returns nearest reward + progress %
+
+ANTI-ABUSE (BASIC):
+- One check-in per shop per day counts toward rewards progress.
+- Optionally require proximity radius for check-in.
+
+DELIVERABLES:
+- Supabase migration SQL + RLS updates
+- Updated navigation + screens
+- Reward engine event bus + stubs for POS providers
+- One-time code reveal + locking
+- README: how to add a new reward and attach it to shops
+
+BUILD ORDER:
+1) DB migrations + RLS
+2) Add follows + profiles + privacy
+3) Implement Friends tab + profile screens
+4) Implement Rewards tab + progress card
+5) Implement event bus + reward engine + one-time code reveal
+6) Implement friends-at-shop strip + go-to orders

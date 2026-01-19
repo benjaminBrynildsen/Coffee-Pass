@@ -1,16 +1,20 @@
 import { useRoute, Link } from "wouter";
-import { MOCK_SHOPS, MOCK_REWARDS } from "@/lib/mock-data";
+import { MOCK_SHOPS, MOCK_REWARDS, MOCK_FRIENDS } from "@/lib/mock-data";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, MapPin, Clock, Star, Share2, CheckCircle, Camera, Gauge, Gift } from "lucide-react";
+import { ArrowLeft, MapPin, Clock, Star, Share2, CheckCircle, Camera, Gauge, Gift, Users } from "lucide-react";
 import { motion } from "framer-motion";
 import { CheckInDialog } from "@/components/check-in-dialog";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function ShopDetail() {
   const [match, params] = useRoute("/shop/:id");
   const shopId = match ? params.id : null;
   const shop = MOCK_SHOPS.find(s => s.id === shopId);
   const rewards = MOCK_REWARDS.filter(r => r.shopId === shopId && r.status !== "REDEEMED");
+  
+  // Mock friends who visited (randomize based on shop ID for demo)
+  const friendsVisited = MOCK_FRIENDS.slice(0, parseInt(shopId || "0") % 2 === 0 ? 2 : 1);
 
   if (!shop) return <div>Shop not found</div>;
 
@@ -56,6 +60,33 @@ export default function ShopDetail() {
           </div>
         </div>
       </div>
+
+      {/* Social Strip */}
+      {friendsVisited.length > 0 && (
+        <div className="px-6 pb-2">
+          <div className="flex items-center gap-3 py-3 border-b border-border">
+            <div className="flex -space-x-3">
+              {friendsVisited.map(friend => (
+                <Avatar key={friend.id} className="h-8 w-8 border-2 border-background">
+                  <AvatarImage src={friend.avatar} />
+                  <AvatarFallback>{friend.name[0]}</AvatarFallback>
+                </Avatar>
+              ))}
+            </div>
+            <div className="text-sm">
+              <span className="font-bold text-primary">
+                {friendsVisited.map(f => f.name.split(" ")[0]).join(", ")}
+              </span>
+              <span className="text-muted-foreground"> have been here</span>
+            </div>
+          </div>
+          {friendsVisited.length > 1 && (
+            <div className="pt-2 text-xs text-muted-foreground">
+              <span className="font-medium text-primary">Steve</span> usually gets: <span className="italic">Oat Milk Latte</span>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Content */}
       <div className="px-6 py-6 space-y-8">

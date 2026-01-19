@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { Map, Compass, Stamp, User } from "lucide-react";
+import { Map, Compass, Users, User, Gift, Activity } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
@@ -12,8 +12,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const navItems = [
     { icon: Map, label: "Map", href: "/map" },
     { icon: Compass, label: "Trails", href: "/trails" },
-    { icon: Stamp, label: "Passport", href: "/passport" },
-    { icon: User, label: "Profile", href: "/profile" },
+    { icon: Activity, label: "Feed", href: "/feed" },
+    { icon: Users, label: "Friends", href: "/friends" },
+    { icon: Gift, label: "Rewards", href: "/rewards" },
   ];
 
   return (

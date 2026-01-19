@@ -11,7 +11,10 @@ import MapPage from "@/pages/map";
 import ShopDetail from "@/pages/shop-detail";
 import TrailsPage from "@/pages/trails";
 import TrailDetail from "@/pages/trail-detail";
-import PassportPage from "@/pages/passport";
+// import PassportPage from "@/pages/passport"; // Deprecated, split into Rewards & Friends/Profile
+import RewardsPage from "@/pages/rewards";
+import FriendsPage from "@/pages/friends";
+import FeedPage from "@/pages/feed";
 
 function Router() {
   return (
@@ -22,7 +25,15 @@ function Router() {
         <Route path="/shop/:id" component={ShopDetail} />
         <Route path="/trails" component={TrailsPage} />
         <Route path="/trail/:id" component={TrailDetail} />
-        <Route path="/passport" component={PassportPage} />
+        
+        {/* New Pages */}
+        <Route path="/rewards" component={RewardsPage} />
+        <Route path="/friends" component={FriendsPage} />
+        <Route path="/feed" component={FeedPage} />
+        
+        {/* Redirect old passport route to rewards for now */}
+        <Route path="/passport" component={RewardsPage} />
+        
         <Route component={NotFound} />
       </Switch>
     </Layout>
