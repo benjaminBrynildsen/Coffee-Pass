@@ -1,0 +1,132 @@
+REPLIT PROMPT — COFFEE DISCOVERY PASSPORT (CONSUMER-ONLY)
+
+You are building a consumer-only mobile app (iOS/Android) called “BrewPassport” (working name): a Google Maps/Yelp-like discovery experience but ONLY for coffee shops, with a passport-style progress system, trails, and a paid “National Coffee Passport” subscription. No coffee shop owner tools in v1.
+
+TECH STACK (choose these defaults unless impossible):
+- Mobile: Expo React Native + TypeScript
+- Backend: Supabase (Postgres + Auth + Storage + Edge Functions)
+- Maps: react-native-maps
+- POI Data Source (MVP): Google Places API OR OpenStreetMap Overpass (implement one; abstract so we can swap later)
+- Payments: Stripe (subscriptions + restore purchases); if native IAP is required later, stub it
+
+CORE PRODUCT PRINCIPLES:
+- Coffee-only. Filter hard (cafe/coffee shop/roaster).
+- No reliance on Google/Yelp reviews. We use our own check-ins + tags.
+- Identity + progress > star ratings.
+- Launch nationally for discovery; “passes” are digital experiences (not coupon-based).
+
+MVP FEATURES (MUST IMPLEMENT):
+1) AUTH + PROFILE
+- Email/password + Apple/Google optional
+- Profile: display name, home city (optional), taste prefs onboarding
+- Taste prefs: roast preference (light/med/dark), flavor notes (chocolate/nutty/fruity/floral/smoky), brew methods (espresso/pour over/cold brew/etc.), vibe prefs (work/quiet/cozy/fast)
+
+2) NATIONAL MAP (COFFEE-ONLY)
+- Map screen with search bar “city / neighborhood”
+- Fetch nearby coffee shops within radius
+- Pins w/ basic info: name, open/closed, distance
+- Filters: brew methods (user tags), vibe, open now
+- Save (bookmark) a shop
+
+3) SHOP DETAIL
+- Basic: name, address, hours, photos (if available), navigation link
+- “Coffee Tags” (our own): brew methods available, roast focus, milk options, vibe
+- “Quick Check-in” button + optional note (“Had a capp, smooth”)
+- Show community signals from OUR app only:
+  - # check-ins
+  - “Often tagged: quiet / great cold brew / oat milk”
+  - Recent photos uploaded by users (Supabase storage)
+
+4) CHECK-INS (PASSPORT MOMENT)
+- Check-in requires: shop_id + drink type + optional tags + optional photo
+- Automatically updates:
+  - user’s “Coffee Passport” stats (shops visited, streak, cities visited)
+  - shop stats (check-in count, tag counts)
+
+5) TRAILS (CURATED + AUTO)
+- Trails are lists of shops with a theme:
+  - “Best Cold Brew Trail”
+  - “Work-Friendly Cafes”
+  - “Light Roast Hunt”
+- MVP: implement 6 static curated trails (seed data) + 1 auto-generated “Nearby Trail” from map results
+- Trail progress shows % completed, and lets user mark done via check-in
+
+6) NATIONAL PASSPORT (PAYWALL)
+- Free tier:
+  - map + shop detail + save + basic check-ins
+  - limited trails (e.g., 2 trails)
+- Paid tier (Stripe subscription):
+  - unlimited trails
+  - “Taste Match” recommendations
+  - route planning (simple ordered list; optional directions deep links)
+  - passport history export (CSV)
+- Build a clean Paywall screen + restore purchase button (stub if needed)
+
+7) TASTE MATCH (SIMPLE ALGO MVP)
+- Implement a basic scoring function:
+  - Score shops based on tags (from our community) matching user prefs
+  - If shop has low data, fallback to category + proximity
+- Display “Match %” on shop cards (not star ratings)
+
+IMPORTANT LEGAL / DATA RULES:
+- Do NOT ingest or display Google reviews/ratings/review text.
+- If using Google Places for POI basics, store only what’s necessary (place_id, name, location, address, hours if allowed) and follow attribution requirements.
+- Our app’s trust layer is check-ins + tags + photos.
+
+DATA MODEL (SUPABASE TABLES):
+- users (id, display_name, created_at)
+- user_preferences (user_id, roast_pref, flavor_notes[], brew_methods[], vibe_prefs[])
+- shops (id, source, source_place_id, name, lat, lng, address, city, state, hours_json, photo_urls[], created_at)
+- shop_tags (shop_id, brew_methods[], vibe_tags[], milk_options[], roast_focus[])  // derived from community tags
+- saves (user_id, shop_id, created_at)
+- checkins (id, user_id, shop_id, drink_type, tags[], note, photo_url, created_at)
+- trails (id, title, description, city_optional, theme_tags[], is_premium, created_at)
+- trail_shops (trail_id, shop_id, order_index)
+- subscriptions (user_id, status, stripe_customer_id, stripe_sub_id, current_period_end)
+
+SCREENS (NAVIGATION):
+- Onboarding (taste prefs)
+- Map
+- Search results (optional)
+- Shop detail
+- Trails list
+- Trail detail
+- Passport stats
+- Profile/settings (subscription, restore, export)
+
+UX REQUIREMENTS:
+- Fast and simple. Few taps to check-in.
+- Visually: clean, minimal, coffee-forward. No ads UI.
+- Show “progress” everywhere (badges, completion bars).
+
+SEED DATA:
+- Add a seed script:
+  - 100 sample shops (if no API key available) in one city for demo
+  - 6 trails referencing those shops
+- Make it easy to swap in live POI fetch later.
+
+DELIVERABLES:
+- Working Expo app running in Replit
+- Supabase schema migrations or SQL setup instructions
+- Environment variables template:
+  - SUPABASE_URL, SUPABASE_ANON_KEY
+  - PLACES_API_KEY (if using Google)
+  - STRIPE_SECRET_KEY, STRIPE_PUBLISHABLE_KEY, STRIPE_WEBHOOK_SECRET (if implemented)
+
+IMPLEMENTATION NOTES:
+- Abstract POI provider behind `providers/poiProvider.ts` so we can swap Google ↔ OSM later.
+- Keep “shop id” stable by hashing (source + source_place_id).
+- Add basic error handling and loading states.
+- Add minimal analytics events (screen views, check-in created, paywall viewed, subscribe clicked) as console logs for now.
+
+START BY:
+1) Create Supabase tables + RLS policies
+2) Build auth + onboarding
+3) Build map + POI fetch + shop detail
+4) Build check-ins + passport stats
+5) Add trails + paywall + subscription stub
+
+Return:
+- The folder structure
+- The key files you created
+- How to run it in Replit
