@@ -56,12 +56,12 @@ export default function PassportPage() {
           <CardContent className="p-6 relative z-10">
             <div className="flex justify-between items-start mb-4">
               <div>
-                <h3 className="text-lg font-bold font-serif mb-1">Upgrade to National Pass</h3>
+                <h3 className="text-lg font-bold font-serif mb-1">Upgrade to Coffee Pass National</h3>
                 <p className="text-sm text-white/80 max-w-[80%]">Unlock unlimited trails, advanced stats, and exclusive tastings.</p>
               </div>
             </div>
             <Button className="w-full bg-white text-amber-900 hover:bg-white/90 border-none font-bold">
-              Get Passport Access
+              Get Pass Access
             </Button>
           </CardContent>
         </Card>

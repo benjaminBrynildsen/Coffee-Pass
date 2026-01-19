@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 const STEPS = [
   {
     id: "intro",
-    title: "Welcome to BrewPassport",
+    title: "Welcome to Coffee Pass",
     subtitle: "Your guide to the best coffee in the city.",
     type: "intro"
   },
