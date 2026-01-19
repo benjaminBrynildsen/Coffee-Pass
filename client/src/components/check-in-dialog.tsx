@@ -2,12 +2,19 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { CheckCircle, Coffee, Star, Camera } from "lucide-react";
+import { CheckCircle, Coffee, Star, Camera, ChevronRight, ArrowLeft } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { FlavorWheel } from "@/components/flavor-wheel";
 
 export function CheckInDialog({ shopName, trigger }: { shopName: string, trigger: React.ReactNode }) {
-  const [step, setStep] = useState("form"); // form, success
+  const [step, setStep] = useState<"form" | "tasting" | "success">("form");
+  const [flavors, setFlavors] = useState<string[]>([]);
+  
+  // Brew details
+  const [brewMethod, setBrewMethod] = useState("");
+  const [beanName, setBeanName] = useState("");
 
   const handleCheckIn = () => {
     setStep("success");
@@ -18,14 +25,14 @@ export function CheckInDialog({ shopName, trigger }: { shopName: string, trigger
       <DialogTrigger asChild>
         {trigger}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md bg-card border-none shadow-2xl">
+      <DialogContent className="sm:max-w-md bg-card border-none shadow-2xl overflow-y-auto max-h-[90vh]">
         <AnimatePresence mode="wait">
           {step === "form" ? (
             <motion.div
               key="form"
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
+              exit={{ opacity: 0, x: -20 }}
               className="space-y-6"
             >
               <DialogHeader>
@@ -34,14 +41,32 @@ export function CheckInDialog({ shopName, trigger }: { shopName: string, trigger
               
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">What are you drinking?</label>
+                  <label className="text-sm font-medium">Brew Method</label>
                   <div className="flex flex-wrap gap-2">
-                    {["Pour Over", "Latte", "Cold Brew", "Espresso", "Tea"].map(drink => (
-                      <button key={drink} className="px-3 py-1.5 rounded-full border border-border text-sm hover:border-primary hover:bg-primary/5 transition-colors focus:bg-primary focus:text-white">
-                        {drink}
+                    {["Pour Over", "Latte", "Cold Brew", "Espresso", "Drip", "Aeropress"].map(method => (
+                      <button 
+                        key={method} 
+                        onClick={() => setBrewMethod(method)}
+                        className={`px-3 py-1.5 rounded-full border text-sm transition-colors ${
+                          brewMethod === method 
+                            ? "bg-primary text-white border-primary" 
+                            : "border-border hover:border-primary hover:bg-primary/5"
+                        }`}
+                      >
+                        {method}
                       </button>
                     ))}
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Bean / Roast Details</label>
+                  <Input 
+                    placeholder="e.g. Ethiopia Yirgacheffe, Light Roast" 
+                    value={beanName}
+                    onChange={(e) => setBeanName(e.target.value)}
+                    className="bg-white/50"
+                  />
                 </div>
 
                 <div className="space-y-3">
@@ -66,10 +91,40 @@ export function CheckInDialog({ shopName, trigger }: { shopName: string, trigger
 
                 <Textarea placeholder="Add a note... (optional)" className="resize-none bg-secondary/20 border-none" />
                 
-                <Button className="w-full h-12 text-lg rounded-xl" onClick={handleCheckIn}>
-                  Confirm Check-in
+                <Button 
+                  className="w-full h-12 text-lg rounded-xl bg-secondary text-secondary-foreground hover:bg-secondary/80" 
+                  onClick={() => setStep("tasting")}
+                >
+                  Add Tasting Notes <ChevronRight className="ml-2 w-4 h-4" />
+                </Button>
+                
+                <Button variant="ghost" className="w-full" onClick={handleCheckIn}>
+                  Skip & Check In
                 </Button>
               </div>
+            </motion.div>
+          ) : step === "tasting" ? (
+            <motion.div
+              key="tasting"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="space-y-6"
+            >
+               <div className="flex items-center">
+                 <Button variant="ghost" size="icon" onClick={() => setStep("form")} className="-ml-2">
+                   <ArrowLeft className="w-5 h-5" />
+                 </Button>
+                 <DialogTitle className="text-xl font-serif text-center flex-1 pr-8">Flavor Profile</DialogTitle>
+               </div>
+
+               <FlavorWheel selected={flavors} onSelect={setFlavors} />
+
+               <div className="pt-4">
+                 <Button className="w-full h-12 text-lg rounded-xl" onClick={handleCheckIn}>
+                   Complete Check-in
+                 </Button>
+               </div>
             </motion.div>
           ) : (
             <motion.div
@@ -91,6 +146,22 @@ export function CheckInDialog({ shopName, trigger }: { shopName: string, trigger
               <p className="text-muted-foreground">
                 You've successfully checked in at <br/> <span className="font-bold text-foreground">{shopName}</span>
               </p>
+              
+              {brewMethod && (
+                <div className="text-sm bg-secondary/20 px-3 py-1 rounded-full text-primary font-medium">
+                  {brewMethod} • {beanName || "House Blend"}
+                </div>
+              )}
+              
+              {flavors.length > 0 && (
+                 <div className="flex flex-wrap gap-1 justify-center max-w-[80%] pt-2">
+                  {flavors.map(s => (
+                    <span key={s} className="text-[10px] border border-primary/20 px-2 py-0.5 rounded-full text-primary">
+                      {s}
+                    </span>
+                  ))}
+                </div>
+              )}
 
               <div className="flex gap-4 pt-4">
                 <div className="text-center p-3 bg-secondary/30 rounded-lg">
