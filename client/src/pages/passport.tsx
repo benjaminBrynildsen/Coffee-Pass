@@ -8,9 +8,29 @@ import { Progress } from "@/components/ui/progress";
 import { MOCK_REWARDS } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 
+import { RedemptionDialog } from "@/components/redemption-dialog";
+import { useState } from "react";
+
 export default function PassportPage() {
+  const [redeemReward, setRedeemReward] = useState<{id: string, title: string, code: string} | null>(null);
+  
+  // Local state to track redeemed status for this session since we don't have a real backend
+  const [redeemedIds, setRedeemedIds] = useState<string[]>([]);
+
+  const handleRedeemComplete = (id: string) => {
+    setRedeemedIds(prev => [...prev, id]);
+  };
+
   return (
     <div className="min-h-screen bg-background pb-safe">
+      <RedemptionDialog 
+        isOpen={!!redeemReward}
+        onOpenChange={(open) => !open && setRedeemReward(null)}
+        rewardTitle={redeemReward?.title || ""}
+        rewardCode={redeemReward?.code || ""}
+        onRedeemComplete={() => redeemReward && handleRedeemComplete(redeemReward.id)}
+      />
+
       {/* Header Profile */}
       <div className="bg-primary text-primary-foreground pt-12 pb-8 px-6 rounded-b-[2rem] shadow-xl relative overflow-hidden">
         {/* Pattern Overlay */}
@@ -75,7 +95,7 @@ export default function PassportPage() {
               <h3 className="font-serif font-bold text-lg flex items-center gap-2">
                 <CheckCircle2 size={18} className="text-green-600" /> Ready to Redeem
               </h3>
-              {MOCK_REWARDS.filter(r => r.status === "UNLOCKED").map(reward => (
+              {MOCK_REWARDS.filter(r => r.status === "UNLOCKED" && !redeemedIds.includes(r.id)).map(reward => (
                 <Card key={reward.id} className="border-l-4 border-l-green-500 shadow-md bg-gradient-to-r from-white to-green-50/50">
                   <CardContent className="p-4">
                     <div className="flex justify-between items-start mb-3">
@@ -93,7 +113,14 @@ export default function PassportPage() {
                         </div>
                       )}
                     </div>
-                    <Button className="w-full bg-green-600 hover:bg-green-700 text-white font-bold h-10">
+                    <Button 
+                      className="w-full bg-green-600 hover:bg-green-700 text-white font-bold h-10"
+                      onClick={() => setRedeemReward({
+                        id: reward.id,
+                        title: reward.title,
+                        code: reward.code || "COFFEEPASS"
+                      })}
+                    >
                       Redeem at Café
                     </Button>
                   </CardContent>

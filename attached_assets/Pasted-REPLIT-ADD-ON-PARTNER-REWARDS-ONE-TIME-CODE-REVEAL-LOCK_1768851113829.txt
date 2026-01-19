@@ -1,0 +1,95 @@
+REPLIT ADD-ON — PARTNER REWARDS: ONE-TIME CODE REVEAL + LOCK
+
+Implement a “Partner Reward Code” redemption flow that is extremely easy for coffee shops:
+- Each partner reward is redeemed using a simple POS promo code (ex: COFFEEPASSFREE).
+- Coffee Pass controls access by only revealing the code to eligible users at redemption time.
+- Once the user taps “Use code”, the code reveal screen can NOT be used again (unless staff resets via admin later).
+
+USER FLOW (MUST)
+1) User unlocks a Partner Reward (status = UNLOCKED)
+2) Taps “Use code”
+3) Show an interstitial confirmation:
+   Title: “Ready to redeem?”
+   Body: “Once you open the code, you can’t open it again. Make sure the barista is ready.”
+   Buttons: [Cancel] [Open code]
+4) If user taps “Open code”:
+   - Create a redemption session record (see DB below)
+   - Mark reward as “REVEAL_STARTED”
+   - Navigate to the Code Reveal screen
+5) Code Reveal screen:
+   - Display large code (e.g., COFFEEPASSFREE)
+   - Optional: start a 60–120 second countdown timer
+   - Show “Show this to the barista”
+   - After countdown ends, keep code visible but prevent leaving + returning to re-open
+6) User taps “Done” (or countdown ends):
+   - Mark reward as REDEEMED (or PENDING_REDEEM if you want a buffer)
+   - Lock the reward permanently from being revealed again
+   - Add feed event: “Jake redeemed a Coffee Pass reward” (optional)
+
+IMPORTANT LOCK RULES
+- The reveal can only be initiated once per unlocked reward instance.
+- Any attempt to re-open after leaving should show:
+  “This code has already been used.”
+- Prevent “back” navigation from restoring UNLOCKED state.
+
+OPTIONAL SAFETY
+- Add “I’m with the barista” checkbox on interstitial.
+- Add device-level binding to redemption session (device_id) to reduce abuse.
+
+DATABASE CHANGES (SUPABASE)
+Add fields to user_rewards:
+- status_enum: LOCKED | UNLOCKED | REVEAL_STARTED | REDEEMED
+- revealed_at (timestamp)
+- redeemed_at (timestamp)
+
+Add a new table:
+- reward_redemptions (
+    id uuid pk,
+    user_id,
+    reward_id,
+    shop_id nullable,
+    code_text,
+    status_enum,        -- STARTED | COMPLETED | CANCELLED
+    started_at,
+    completed_at,
+    device_fingerprint nullable
+  )
+
+LOGIC
+- When “Open code” is confirmed:
+  - Create reward_redemptions row with status STARTED
+  - Set user_rewards.status = REVEAL_STARTED, revealed_at = now()
+- When user presses Done (or timer ends):
+  - Update reward_redemptions.status = COMPLETED, completed_at = now()
+  - Set user_rewards.status = REDEEMED, redeemed_at = now()
+
+CODE MANAGEMENT
+- Partner reward codes are configured per reward (static code) OR per shop_reward mapping.
+- Store codes in rewards.reward_value_json like:
+  { "type": "POS_CODE", "code": "COFFEEPASSFREE", "expires_seconds": 90 }
+
+UI COPY (USE EXACT TONE)
+Interstitial:
+- “Ready to redeem?”
+- “Once you open the code, you can’t open it again. Make sure the barista is ready.”
+Buttons: “Cancel” / “Open code”
+
+Reveal screen:
+- Header: “Coffee Pass Code”
+- Subtext: “Show this to the barista”
+- Warning: “This code can’t be reopened once closed.”
+
+EDGE CASES
+- If user closes app mid-reveal:
+  - Treat as used (status remains REVEAL_STARTED)
+  - Attempting to reopen shows “Already used”
+- If network fails after tapping Open code:
+  - Retry creating redemption session once, then show error and keep reward UNLOCKED only if session not created.
+- Admin reset tool (stub):
+  - Allow setting status back to UNLOCKED for customer support
+
+DELIVERABLES
+- Updated schema + RLS
+- Interstitial + Reveal screen
+- Redemption logic + locking behavior
+- Minimal tests for “cannot reopen” rule

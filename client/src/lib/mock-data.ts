@@ -33,9 +33,10 @@ export interface Reward {
   criteria: string;
   progress: number;
   total: number;
-  status: 'LOCKED' | 'UNLOCKED' | 'REDEEMED';
+  status: 'LOCKED' | 'UNLOCKED' | 'REVEAL_STARTED' | 'REDEEMED';
   shopId?: string; // For partner rewards
   expiryDate?: string;
+  code?: string; // Mock code for partner rewards
 }
 
 export const MOCK_REWARDS: Reward[] = [
@@ -80,7 +81,8 @@ export const MOCK_REWARDS: Reward[] = [
     progress: 4,
     total: 5,
     status: "LOCKED",
-    shopId: "1"
+    shopId: "1",
+    code: "SUMPFREE"
   },
   {
     id: "r5",
@@ -92,7 +94,8 @@ export const MOCK_REWARDS: Reward[] = [
     total: 1,
     status: "UNLOCKED",
     shopId: "2",
-    expiryDate: "Expires in 6 days"
+    expiryDate: "Expires in 6 days",
+    code: "COFFEEPASSFREE"
   }
 ];
 
