@@ -1,0 +1,129 @@
+import { useRoute, Link } from "wouter";
+import { MOCK_SHOPS } from "@/lib/mock-data";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { ArrowLeft, MapPin, Clock, Star, Share2, CheckCircle, Camera } from "lucide-react";
+import { motion } from "framer-motion";
+import { CheckInDialog } from "@/components/check-in-dialog";
+
+export default function ShopDetail() {
+  const [match, params] = useRoute("/shop/:id");
+  const shopId = match ? params.id : null;
+  const shop = MOCK_SHOPS.find(s => s.id === shopId);
+
+  if (!shop) return <div>Shop not found</div>;
+
+  return (
+    <div className="min-h-screen bg-background pb-safe">
+      {/* Hero Image */}
+      <div className="relative h-72 w-full">
+        <div 
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: `url(${shop.image})` }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+        
+        <Link href="/map">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="absolute top-4 left-4 text-white hover:bg-black/20 rounded-full backdrop-blur-sm"
+          >
+            <ArrowLeft />
+          </Button>
+        </Link>
+        
+        <div className="absolute top-4 right-4 flex gap-2">
+           <Button variant="ghost" size="icon" className="text-white hover:bg-black/20 rounded-full backdrop-blur-sm">
+            <Share2 size={20} />
+          </Button>
+        </div>
+
+        <div className="absolute bottom-6 left-6 right-6 text-white">
+          <motion.h1 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-3xl font-serif font-bold mb-2"
+          >
+            {shop.name}
+          </motion.h1>
+          <div className="flex items-center gap-2 text-sm text-white/90">
+            <MapPin size={14} />
+            <span>{shop.address}</span>
+            <span>•</span>
+            <span>{shop.distance}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="px-6 py-6 space-y-8">
+        {/* Actions */}
+        <div className="flex gap-4">
+          <CheckInDialog 
+            shopName={shop.name}
+            trigger={
+              <Button className="flex-1 h-12 text-lg rounded-xl shadow-lg bg-primary text-primary-foreground hover:bg-primary/90">
+                <CheckCircle className="mr-2 h-5 w-5" /> Check In
+              </Button>
+            }
+          />
+          
+           <Button variant="outline" className="flex-1 h-12 text-lg rounded-xl border-primary/20 text-primary hover:bg-primary/5">
+            <Camera className="mr-2 h-5 w-5" /> Add Photo
+          </Button>
+        </div>
+
+        {/* Stats Row */}
+        <div className="flex justify-between py-4 border-y border-border">
+          <div className="text-center">
+            <div className="text-xs text-muted-foreground uppercase tracking-wide">Match</div>
+            <div className="text-xl font-bold text-accent">{shop.rating}%</div>
+          </div>
+          <div className="text-center border-l border-border pl-8">
+            <div className="text-xs text-muted-foreground uppercase tracking-wide">Visits</div>
+            <div className="text-xl font-bold">1.2k</div>
+          </div>
+           <div className="text-center border-l border-border pl-8">
+            <div className="text-xs text-muted-foreground uppercase tracking-wide">Open</div>
+            <div className="text-xl font-bold text-green-600">Now</div>
+          </div>
+        </div>
+
+        {/* About */}
+        <div className="space-y-3">
+          <h2 className="text-xl font-serif font-bold text-primary">The Vibe</h2>
+          <p className="text-muted-foreground leading-relaxed">
+            {shop.description}
+          </p>
+          <div className="flex flex-wrap gap-2 pt-2">
+            {shop.tags.map(tag => (
+              <Badge key={tag} variant="secondary" className="px-3 py-1 text-sm bg-secondary/50 hover:bg-secondary">
+                {tag}
+              </Badge>
+            ))}
+          </div>
+        </div>
+
+        {/* Location & Hours */}
+        <div className="space-y-4">
+          <h2 className="text-xl font-serif font-bold text-primary">Details</h2>
+          <div className="bg-card p-4 rounded-xl border space-y-3">
+            <div className="flex justify-between items-center">
+              <span className="text-muted-foreground flex items-center gap-2">
+                <Clock size={16} /> Monday - Friday
+              </span>
+              <span className="font-medium">7am - 7pm</span>
+            </div>
+             <div className="flex justify-between items-center">
+              <span className="text-muted-foreground flex items-center gap-2">
+                <Clock size={16} /> Weekends
+              </span>
+              <span className="font-medium">8am - 6pm</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
