@@ -1,8 +1,8 @@
 import { useRoute, Link } from "wouter";
-import { MOCK_SHOPS } from "@/lib/mock-data";
+import { MOCK_SHOPS, MOCK_REWARDS } from "@/lib/mock-data";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, MapPin, Clock, Star, Share2, CheckCircle, Camera, Gauge } from "lucide-react";
+import { ArrowLeft, MapPin, Clock, Star, Share2, CheckCircle, Camera, Gauge, Gift } from "lucide-react";
 import { motion } from "framer-motion";
 import { CheckInDialog } from "@/components/check-in-dialog";
 
@@ -10,6 +10,7 @@ export default function ShopDetail() {
   const [match, params] = useRoute("/shop/:id");
   const shopId = match ? params.id : null;
   const shop = MOCK_SHOPS.find(s => s.id === shopId);
+  const rewards = MOCK_REWARDS.filter(r => r.shopId === shopId && r.status !== "REDEEMED");
 
   if (!shop) return <div>Shop not found</div>;
 
@@ -124,6 +125,18 @@ export default function ShopDetail() {
               </Badge>
             ))}
           </div>
+          
+          {rewards.length > 0 && (
+            <div className="mt-4 p-3 bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl border border-orange-200 flex items-start gap-3">
+              <div className="bg-white p-2 rounded-full shadow-sm text-orange-500">
+                <Gift size={16} />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-orange-900">Reward Available Here</p>
+                <p className="text-xs text-orange-700">{rewards[0].description}</p>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Location & Hours */}

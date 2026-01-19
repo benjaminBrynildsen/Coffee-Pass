@@ -2,8 +2,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Trophy, Calendar, MapPin, Share2, Settings, Crown } from "lucide-react";
+import { Trophy, Calendar, MapPin, Share2, Settings, Crown, Gift, Lock, CheckCircle2, QrCode } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { MOCK_REWARDS } from "@/lib/mock-data";
+import { cn } from "@/lib/utils";
 
 export default function PassportPage() {
   return (
@@ -48,44 +51,83 @@ export default function PassportPage() {
 
       {/* Content */}
       <div className="px-6 py-6">
-        {/* Subscription Banner */}
-        <Card className="bg-gradient-to-r from-amber-700 to-amber-900 border-none text-white shadow-lg mb-8 relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-4 opacity-10">
-            <Crown size={120} />
-          </div>
-          <CardContent className="p-6 relative z-10">
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <h3 className="text-lg font-bold font-serif mb-1">Upgrade to Coffee Pass National</h3>
-                <p className="text-sm text-white/80 max-w-[80%]">Unlock unlimited trails, advanced stats, and exclusive tastings.</p>
-              </div>
-            </div>
-            <Button className="w-full bg-white text-amber-900 hover:bg-white/90 border-none font-bold">
-              Get Pass Access
-            </Button>
-          </CardContent>
-        </Card>
-
-        <h2 className="text-xl font-serif font-bold mb-4 flex items-center gap-2">
-          <Trophy size={20} className="text-primary" /> Recent Badges
-        </h2>
-        
-        <div className="grid grid-cols-3 gap-4 mb-8">
-          {[1,2,3].map((i) => (
-             <div key={i} className="aspect-square bg-card rounded-xl border border-border flex flex-col items-center justify-center p-2 text-center shadow-sm">
-               <div className="w-10 h-10 bg-secondary/50 rounded-full flex items-center justify-center mb-2 text-2xl">
-                 ☕️
-               </div>
-               <span className="text-[10px] font-bold text-primary">Early Bird</span>
-             </div>
-          ))}
-        </div>
-
-        <Tabs defaultValue="history" className="w-full">
-          <TabsList className="w-full grid grid-cols-2 mb-6">
+        <Tabs defaultValue="rewards" className="w-full">
+          <TabsList className="w-full grid grid-cols-3 mb-6">
+            <TabsTrigger value="rewards">Rewards</TabsTrigger>
             <TabsTrigger value="history">History</TabsTrigger>
             <TabsTrigger value="stats">Stats</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="rewards" className="space-y-6">
+            {/* Status Banner */}
+            <div className="bg-secondary/20 border border-secondary p-4 rounded-xl flex items-center gap-4">
+              <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center text-secondary-foreground">
+                <Gift size={20} />
+              </div>
+              <div>
+                <p className="font-bold text-primary">You're close!</p>
+                <p className="text-sm text-muted-foreground">2 cafés away from your next reward ☕️</p>
+              </div>
+            </div>
+
+            {/* Unlocked Rewards */}
+            <div className="space-y-4">
+              <h3 className="font-serif font-bold text-lg flex items-center gap-2">
+                <CheckCircle2 size={18} className="text-green-600" /> Ready to Redeem
+              </h3>
+              {MOCK_REWARDS.filter(r => r.status === "UNLOCKED").map(reward => (
+                <Card key={reward.id} className="border-l-4 border-l-green-500 shadow-md bg-gradient-to-r from-white to-green-50/50">
+                  <CardContent className="p-4">
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <Badge className="mb-2 bg-green-100 text-green-800 hover:bg-green-100 border-none">Unlocked</Badge>
+                        <h4 className="font-bold text-lg">{reward.title}</h4>
+                        <p className="text-sm text-muted-foreground">{reward.description}</p>
+                        {reward.expiryDate && (
+                          <p className="text-xs text-amber-600 mt-1 font-medium">{reward.expiryDate}</p>
+                        )}
+                      </div>
+                      {reward.type === "PARTNER" && (
+                        <div className="bg-primary/5 p-2 rounded-lg">
+                          <QrCode size={24} className="text-primary" />
+                        </div>
+                      )}
+                    </div>
+                    <Button className="w-full bg-green-600 hover:bg-green-700 text-white font-bold h-10">
+                      Redeem at Café
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            {/* In Progress */}
+            <div className="space-y-4">
+              <h3 className="font-serif font-bold text-lg flex items-center gap-2">
+                <Trophy size={18} className="text-primary" /> In Progress
+              </h3>
+              {MOCK_REWARDS.filter(r => r.status === "LOCKED").map(reward => (
+                <Card key={reward.id} className="border-border shadow-sm">
+                  <CardContent className="p-4">
+                    <div className="flex justify-between mb-2">
+                      <h4 className="font-bold text-primary">{reward.title}</h4>
+                      {reward.type === "PARTNER" && <Badge variant="outline" className="text-[10px]">Partner</Badge>}
+                    </div>
+                    <p className="text-sm text-muted-foreground mb-3">{reward.description}</p>
+                    
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between text-xs font-medium text-muted-foreground">
+                        <span>{reward.criteria}</span>
+                        <span>{reward.progress} / {reward.total}</span>
+                      </div>
+                      <Progress value={(reward.progress / reward.total) * 100} className="h-2" />
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+
           <TabsContent value="history" className="space-y-4">
             {[1,2,3,4].map((i) => (
               <div key={i} className="flex items-start gap-4 p-4 bg-card rounded-xl border border-border shadow-sm">
@@ -102,9 +144,28 @@ export default function PassportPage() {
               </div>
             ))}
           </TabsContent>
+          
           <TabsContent value="stats">
+             {/* Subscription Banner */}
+            <Card className="bg-gradient-to-r from-amber-700 to-amber-900 border-none text-white shadow-lg mb-8 relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-4 opacity-10">
+                <Crown size={120} />
+              </div>
+              <CardContent className="p-6 relative z-10">
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <h3 className="text-lg font-bold font-serif mb-1">Upgrade to Coffee Pass National</h3>
+                    <p className="text-sm text-white/80 max-w-[80%]">Unlock unlimited trails, advanced stats, and exclusive tastings.</p>
+                  </div>
+                </div>
+                <Button className="w-full bg-white text-amber-900 hover:bg-white/90 border-none font-bold">
+                  Get Pass Access
+                </Button>
+              </CardContent>
+            </Card>
+
             <div className="text-center py-10 text-muted-foreground">
-              Detailed stats coming soon.
+              More stats coming soon.
             </div>
           </TabsContent>
         </Tabs>

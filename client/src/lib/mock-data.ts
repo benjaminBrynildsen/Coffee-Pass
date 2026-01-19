@@ -25,6 +25,77 @@ export interface Trail {
   image: string;
 }
 
+export interface Reward {
+  id: string;
+  type: 'PLATFORM' | 'PARTNER';
+  title: string;
+  description: string;
+  criteria: string;
+  progress: number;
+  total: number;
+  status: 'LOCKED' | 'UNLOCKED' | 'REDEEMED';
+  shopId?: string; // For partner rewards
+  expiryDate?: string;
+}
+
+export const MOCK_REWARDS: Reward[] = [
+  // Platform Rewards
+  {
+    id: "r1",
+    type: "PLATFORM",
+    title: "New Explorer",
+    description: "Visit 5 different coffee shops.",
+    criteria: "5 Check-ins",
+    progress: 3,
+    total: 5,
+    status: "LOCKED"
+  },
+  {
+    id: "r2",
+    type: "PLATFORM",
+    title: "Free Month of Coffee Pass",
+    description: "Visit 10 different coffee shops to unlock a free month.",
+    criteria: "10 Check-ins",
+    progress: 3,
+    total: 10,
+    status: "LOCKED"
+  },
+  {
+    id: "r3",
+    type: "PLATFORM",
+    title: "Caffeine Streak",
+    description: "Visit 3 shops in 7 days.",
+    criteria: "Streak",
+    progress: 1,
+    total: 3,
+    status: "LOCKED"
+  },
+  // Partner Rewards
+  {
+    id: "r4",
+    type: "PARTNER",
+    title: "Free Drip Coffee",
+    description: "Check in 5 times at Sump Coffee.",
+    criteria: "5 Sump Visits",
+    progress: 4,
+    total: 5,
+    status: "LOCKED",
+    shopId: "1"
+  },
+  {
+    id: "r5",
+    type: "PARTNER",
+    title: "BOGO Pastry",
+    description: "Complete the Cold Brew Circuit to unlock.",
+    criteria: "Trail Completion",
+    progress: 1,
+    total: 1,
+    status: "UNLOCKED",
+    shopId: "2",
+    expiryDate: "Expires in 6 days"
+  }
+];
+
 export const MOCK_SHOPS: Shop[] = [
   {
     id: "1",

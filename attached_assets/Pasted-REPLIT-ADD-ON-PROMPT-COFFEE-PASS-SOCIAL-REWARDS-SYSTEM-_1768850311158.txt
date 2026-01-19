@@ -1,0 +1,168 @@
+REPLIT ADD-ON PROMPT — COFFEE PASS (SOCIAL + REWARDS SYSTEM)
+
+Update the existing BrewPassport MVP. The app is now called **Coffee Pass**.
+
+Add a rewards system that incentivizes repeat café visits and social sharing, while remaining scalable nationally. Rewards should work in two modes:
+1) Platform-owned rewards (no shop coordination required)
+2) Partner rewards (optional, opt-in per shop or city)
+
+--------------------------------
+CORE CONCEPT
+--------------------------------
+Coffee Pass rewards people for *showing up*, not reviewing.
+Rewards are earned through check-ins, streaks, collections, and trail completion.
+
+--------------------------------
+REWARD TYPES (v1)
+--------------------------------
+
+1) PLATFORM REWARDS (NO PARTNER REQUIRED)
+These must work everywhere, immediately.
+
+- Check-in milestones:
+  - 5 cafés → badge
+  - 10 cafés → free month of Coffee Pass
+  - 25 cafés → limited digital badge + profile highlight
+  - 50 cafés → physical reward eligibility (future)
+
+- Streaks:
+  - 3 cafés in 7 days
+  - 5 cafés in 30 days
+  - Monthly streak badge
+
+- Trail completion:
+  - Finish a trail → badge + share card
+  - Finish 3 trails → unlock “Explorer” tier
+
+Rewards here are:
+- Badges
+- Profile highlights
+- Free subscription time
+- Early access to new trails/cities
+
+--------------------------------
+2) PARTNER REWARDS (OPTIONAL, COORDINATED)
+--------------------------------
+These rewards activate only where shops or city partners opt in.
+
+Examples:
+- “Check in 5 times at this café → free drip”
+- “Complete the STL Coffee Trail → free pastry at any partner shop”
+- “10 check-ins this month → BOGO reward”
+
+IMPORTANT:
+- No coupons visible publicly
+- Rewards unlock silently in the app
+- User redeems by showing an in-app reward screen to staff
+
+--------------------------------
+REWARD LOGIC RULES
+--------------------------------
+- Rewards are unlocked by **verified check-ins only**
+- Check-ins must be:
+  - At least X hours apart (configurable, default 4h)
+  - Unique per shop per day
+- Partner rewards can be:
+  - Shop-specific
+  - City-specific
+  - Trail-specific
+
+--------------------------------
+REWARD UI (SIMPLE + NON-CLUTTERY)
+--------------------------------
+
+User sees:
+- “You’re 2 cafés away from your next reward ☕️”
+- Progress bars, not lists of coupons
+- A single **Rewards** screen:
+  - Earned
+  - In progress
+  - Redeemed
+
+On Shop Page:
+- Small line if applicable:
+  “Rewards available here”
+
+--------------------------------
+SOCIAL + VIRAL INTEGRATION
+--------------------------------
+When a reward is unlocked:
+- Optional share card:
+  “I just unlocked a Coffee Pass reward ☕️”
+- Friends see feed event:
+  “Jake unlocked a Coffee Pass reward”
+
+--------------------------------
+DATABASE ADDITIONS (SUPABASE)
+--------------------------------
+
+Tables:
+- rewards (
+    id,
+    type_enum,        -- PLATFORM | PARTNER
+    title,
+    description,
+    criteria_json,    -- { checkins: 5, trail_id?, city? }
+    reward_value_json,-- { free_months: 1 } OR { free_item: "Drip Coffee" }
+    is_active,
+    created_at
+  )
+
+- user_rewards (
+    user_id,
+    reward_id,
+    status_enum,      -- LOCKED | UNLOCKED | REDEEMED
+    unlocked_at,
+    redeemed_at
+  )
+
+- shop_rewards (
+    shop_id,
+    reward_id
+  )
+
+--------------------------------
+BACKEND LOGIC
+--------------------------------
+- After every check-in:
+  - Recalculate user progress toward rewards
+  - Unlock rewards when criteria met
+  - Trigger feed event + optional notification
+
+--------------------------------
+ANTI-GAMING
+--------------------------------
+- Max 1 reward-progressing check-in per shop per day
+- Require GPS proximity check (simple radius)
+- Manual override flag for admin
+
+--------------------------------
+ADMIN / FUTURE (STUB ONLY)
+--------------------------------
+- Admin dashboard stub:
+  - Create rewards
+  - Attach to shops or cities
+  - Activate/deactivate rewards
+
+--------------------------------
+NAMING / COPY (USE EXACT TONE)
+--------------------------------
+- “Coffee Pass Reward”
+- “You’re getting close ☕️”
+- “Unlocked”
+- “Redeem at café”
+
+--------------------------------
+DELIVERABLES
+--------------------------------
+- Updated schema + RLS
+- Rewards screen
+- Reward progress logic
+- Shop reward indicator
+- Feed events for reward unlocks
+- Clear README on how to add new rewards
+
+--------------------------------
+GOAL
+--------------------------------
+Make Coffee Pass feel rewarding to use *even without discounts*, while enabling powerful local partnerships when available.
