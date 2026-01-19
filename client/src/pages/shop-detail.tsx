@@ -2,7 +2,7 @@ import { useRoute, Link } from "wouter";
 import { MOCK_SHOPS } from "@/lib/mock-data";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, MapPin, Clock, Star, Share2, CheckCircle, Camera } from "lucide-react";
+import { ArrowLeft, MapPin, Clock, Star, Share2, CheckCircle, Camera, Gauge } from "lucide-react";
 import { motion } from "framer-motion";
 import { CheckInDialog } from "@/components/check-in-dialog";
 
@@ -103,6 +103,11 @@ export default function ShopDetail() {
                  ✨ {tag.replace("Vibe: ", "")}
               </Badge>
             ))}
+             {shop.tags.filter(t => t.includes("Machine")).map(tag => (
+              <Badge key={tag} className="px-3 py-1 text-sm bg-slate-100 text-slate-900 hover:bg-slate-200 border-none">
+                 <Gauge size={12} className="mr-1 inline" /> {tag.replace("Machine: ", "")}
+              </Badge>
+            ))}
           </div>
 
           <div>
@@ -113,7 +118,7 @@ export default function ShopDetail() {
           </div>
           
           <div className="flex flex-wrap gap-2 pt-2">
-            {shop.tags.filter(t => !t.includes("House") && !t.includes("Sweet") && !t.includes("Vibe")).map(tag => (
+            {shop.tags.filter(t => !t.includes("House") && !t.includes("Sweet") && !t.includes("Vibe") && !t.includes("Machine")).map(tag => (
               <Badge key={tag} variant="secondary" className="px-3 py-1 text-sm bg-secondary/50 hover:bg-secondary">
                 {tag}
               </Badge>
