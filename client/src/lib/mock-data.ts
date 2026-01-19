@@ -1,4 +1,6 @@
 
+import coldBrewImage from "@assets/generated_images/cold_brew_coffee_flight_on_a_wooden_board.png";
+
 export interface Shop {
   id: string;
   name: string;
@@ -99,7 +101,7 @@ export const MOCK_TRAILS: Trail[] = [
     shops: ["1", "3", "4"],
     completed: 1,
     total: 3,
-    image: "https://images.unsplash.com/photo-1517701604599-bb29b5c7355c?auto=format&fit=crop&q=80&w=1000"
+    image: coldBrewImage
   },
   {
     id: "t2",
