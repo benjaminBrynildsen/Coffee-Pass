@@ -16,8 +16,8 @@ export default function PassportPage() {
         <div className="relative z-10 flex flex-col items-center text-center space-y-4">
           <div className="relative">
             <Avatar className="h-24 w-24 border-4 border-white/20 shadow-2xl">
-              <AvatarImage src="https://github.com/shadcn.png" />
-              <AvatarFallback>JD</AvatarFallback>
+              <AvatarImage src="https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=crop&q=80&w=200" />
+              <AvatarFallback>DH</AvatarFallback>
             </Avatar>
             <div className="absolute -bottom-2 -right-2 bg-accent text-white p-1.5 rounded-full border-2 border-primary shadow-lg">
               <Crown size={16} fill="currentColor" />
@@ -25,8 +25,8 @@ export default function PassportPage() {
           </div>
           
           <div>
-            <h1 className="text-2xl font-serif font-bold">Jane Doe</h1>
-            <p className="text-primary-foreground/70 text-sm">Coffee Enthusiast • St. Louis</p>
+            <h1 className="text-2xl font-serif font-bold">Dustin Henderson</h1>
+            <p className="text-primary-foreground/70 text-sm">Science & Coffee Nerd • Hawkins</p>
           </div>
 
           <div className="flex gap-6 pt-2">
